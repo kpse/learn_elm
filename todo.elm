@@ -1,44 +1,67 @@
-module Main exposing (..)
 import Html exposing (..)
-import Html.Events exposing (onClick)
+import Html.Attributes exposing (..)
+import Html.Events exposing (onInput, onClick)
 import Html.App
 
--- Naub
 
 main = Html.App.beginnerProgram
     {
-        model = 0,
+        model = model,
         update = update,
         view = view
     }
 
--- Model
-type alias Model = Int
+-- model
 
+type alias Model =
+    {
+        todo: String,
+        todos: List String
+    }
 
--- Message
-type Msg
-    = Inc
-    | Dec
+model =
+    {
+        todo = "",
+        todos = []
+    }
+-- update
 
--- Update
+type Msg = UpdateText String
+            | AddItem
+            | RemoveItem String
 
-update : Msg -> Model -> Model
-update message model =
-    case message of
-        Inc -> model + 1
-        Dec -> model - 1
+update msg model =
+    case msg of
+        UpdateText text ->
+            {model | todo = text}
 
+        AddItem ->
+            {model | todos = model.todo :: model.todos }
 
--- View
+        RemoveItem todo ->
+            {model |
+                todos =
+                    List.filter (\t -> t /= todo) model.todos }
 
-view: Model -> Html Msg
+-- view
+todoItem todo =
+    li []
+        [
+            text todo,
+            button [onClick (RemoveItem todo)] [text "X"]
+        ]
+
+todoList todos =
+    let
+        children = List.map todoItem todos
+    in
+        ul [] children
+
 view model =
     div []
         [
-            h1 [] [text "Counter:"],
-            div [] [text (toString model)],
-            button [onClick Inc] [text "Increment"],
-            button [onClick Dec] [text "Decrement"]
-
+            input [ type' "text", onInput UpdateText, value model.todo ] [],
+            button [onClick AddItem] [text "Add todo"],
+            div [] [text model.todo],
+            todoList model.todos
         ]
